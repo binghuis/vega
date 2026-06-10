@@ -1,0 +1,24 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+*.tsbuildinfo
+
+# 运行时产物(§12:.runs/{run-id}/ 截图、diff、日志、报告)
+.runs/
+
+# 密钥与本地配置(Anthropic key / Figma token)
+.env
+.env.*
+!.env.example
+
+# 行为神谕(playwright)产物
+test-results/
+playwright-report/
+
+# 日志
+*.log
+
+# OS / 编辑器
+.DS_Store
