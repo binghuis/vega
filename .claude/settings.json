@@ -3,7 +3,6 @@
   "enabledPlugins": {
     "frontend@binghuis-plugins": true,
     "meta@binghuis-plugins": true,
-    "bug-fix-workflow@bug-fix-workflow-marketplace": true,
     "andrej-karpathy-skills@karpathy-skills": true
   },
   "extraKnownMarketplaces": {
