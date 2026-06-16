@@ -8,6 +8,9 @@ dist/
 # 运行时产物(§12:.runs/{run-id}/ 截图、diff、日志、报告)
 .runs/
 
+# 需求解析产物 + 本地运行时配置(飞书凭据等,网页里填,落本地)
+.vega/
+
 # 密钥与本地配置(Anthropic key / Figma token)
 .env
 .env.*

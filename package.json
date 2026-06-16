@@ -6,14 +6,20 @@
   "description": "Vega(织女)— 基于验证引擎的全自主前端开发系统",
   "license": "ISC",
   "packageManager": "pnpm@10.32.1",
-  "bin": { "vega": "bin/vega.js" },
+  "bin": {
+    "vega": "bin/vega.js"
+  },
   "scripts": {
     "vega": "tsx src/cli.ts",
+    "parse": "tsx src/cli.ts parse",
+    "serve": "tsx src/server/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.178",
     "@anthropic-ai/sdk": "^0.104.2",
+    "@hono/node-server": "^2.0.5",
+    "hono": "^4.12.25",
     "pixelmatch": "^7.2.0",
     "playwright": "^1.61.0",
     "pngjs": "^7.0.0",
