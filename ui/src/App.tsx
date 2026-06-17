@@ -44,21 +44,19 @@ function App() {
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col lg:h-screen">
       {/* 顶部品牌栏:固定不随面板滚动 */}
-      <header className="bg-background/80 supports-backdrop-filter:bg-background/60 sticky top-0 z-20 shrink-0 border-b border-border/70 backdrop-blur">
+      <header className="bg-background/80 supports-backdrop-filter:bg-background/60 sticky top-0 z-20 shrink-0 backdrop-blur">
         <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
           <span
             aria-hidden
-            className="text-primary text-lg leading-none drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+            className="text-brand text-lg leading-none drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]"
           >
             ✦
           </span>
-          <h1 className="flex items-baseline gap-2">
-            <span className="font-brand text-lg font-semibold tracking-tight">
-              Vega · 织女
-            </span>
-            <span className="text-muted-foreground text-sm font-normal">
-              需求解析
-            </span>
+          <h1 className="font-brand text-lg font-semibold tracking-tight">
+            <span style={{ fontVariationSettings: "'opsz' 72, 'SOFT' 6, 'WONK' 1" }}>
+              Vega ·
+            </span>{' '}
+            <span className="text-brand font-cjk">织女</span>
           </h1>
           <nav className="text-muted-foreground ml-auto hidden items-center gap-1.5 text-xs md:flex">
             {FLOW.map((step, i) => (
@@ -73,7 +71,7 @@ function App() {
 
       {/* 主体:左侧边栏与右主区在 lg 下各自独立滚动;窄屏退化为整页滚动 */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside className="shrink-0 overflow-y-auto border-b border-border/70 lg:w-88 lg:border-r lg:border-b-0">
+        <aside className="shrink-0 overflow-y-auto lg:w-88">
           <div className="flex flex-col gap-5 p-4 lg:p-5">
             <FeishuConfig config={config} onSaved={setConfig} />
             <ParsePanel ready={ready} onParsed={handleParsed} />
@@ -98,10 +96,8 @@ function App() {
                           type="button"
                           onClick={() => setSelectedId(s.source.documentId)}
                           className={cn(
-                            'w-full rounded-lg border px-3 py-2.5 text-left text-sm transition-colors',
-                            active
-                              ? 'border-primary/40 bg-primary/5'
-                              : 'border-border/60 hover:bg-accent',
+                            'w-full rounded-md px-3 py-2.5 text-left text-sm transition-colors',
+                            active ? 'bg-brand/10' : 'hover:bg-accent',
                           )}
                         >
                           <div className="flex items-center gap-2">
@@ -109,7 +105,7 @@ function App() {
                               className={cn(
                                 'size-1.5 shrink-0 rounded-full',
                                 active
-                                  ? 'bg-primary'
+                                  ? 'bg-brand'
                                   : 'bg-muted-foreground/30',
                               )}
                             />

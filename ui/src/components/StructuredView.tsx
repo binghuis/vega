@@ -278,7 +278,7 @@ function CriterionCard({
 }) {
   const thumb = cr.source.image ? imageUrl(cr.source.image) : null
   return (
-    <Card className="py-3">
+    <Card className="bg-muted/50 py-3">
       <CardContent className="flex gap-3">
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -333,7 +333,7 @@ function LedgerBlock({
   children: ReactNode
 }) {
   return (
-    <div className="rounded-md border p-3">
+    <div className="bg-muted/50 rounded-md p-3">
       <div className="mb-2 flex items-center gap-2 text-sm font-medium">
         {icon}
         {title}

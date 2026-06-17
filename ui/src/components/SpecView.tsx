@@ -113,7 +113,7 @@ export function SpecView({ spec }: Props) {
               <p className="text-destructive text-sm">{doc.message}</p>
             )}
             {doc.status === 'loaded' && (
-              <pre className="bg-muted/40 max-h-[60vh] overflow-auto rounded-md border p-4 text-sm whitespace-pre-wrap">
+              <pre className="bg-muted/40 max-h-[60vh] overflow-auto rounded-md p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap">
                 {doc.text}
               </pre>
             )}
