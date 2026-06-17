@@ -52,6 +52,18 @@ export async function getDocument(id: string): Promise<string | null> {
   }
 }
 
+/** 结构化结果(structured.json);未结构化返回 null */
+export async function getStructured(id: string): Promise<unknown | null> {
+  try {
+    return JSON.parse(
+      await fs.readFile(path.join(SPECS_DIR, id, 'structured.json'), 'utf8'),
+    )
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null
+    throw err
+  }
+}
+
 /**
  * 解析素材文件的绝对路径。
  * 只取 basename 防目录穿越,且必须落在该 spec 的 assets 目录内。

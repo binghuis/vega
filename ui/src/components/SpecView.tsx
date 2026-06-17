@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
-import { ExternalLink, FileText, ImageIcon, Loader2 } from 'lucide-react'
+import {
+  ExternalLink,
+  FileText,
+  ImageIcon,
+  ListChecks,
+  Loader2,
+} from 'lucide-react'
 
+import { StructuredView } from '@/components/StructuredView'
 import {
   Card,
   CardContent,
@@ -24,6 +31,13 @@ type DocState =
 export function SpecView({ spec }: Props) {
   const id = spec.source.documentId
   const [doc, setDoc] = useState<DocState>({ status: 'loading' })
+
+  // 图片 token → 直链(供结构化视图显示缩略图)
+  const assetByToken = new Map(spec.assets.map((a) => [a.fileToken, a.file]))
+  const imageUrl = (token: string) => {
+    const file = assetByToken.get(token)
+    return file ? api.assetUrl(id, file) : null
+  }
 
   useEffect(() => {
     let alive = true
@@ -82,6 +96,10 @@ export function SpecView({ spec }: Props) {
               <ImageIcon className="size-4" />
               图片 {spec.counts.images}
             </TabsTrigger>
+            <TabsTrigger value="structured">
+              <ListChecks className="size-4" />
+              结构化
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="document" className="mt-4">
@@ -124,6 +142,10 @@ export function SpecView({ spec }: Props) {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="structured" className="mt-4">
+            <StructuredView specId={id} imageUrl={imageUrl} />
           </TabsContent>
         </Tabs>
       </CardContent>

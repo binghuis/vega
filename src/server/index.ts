@@ -19,9 +19,11 @@ import { parseFeishuDoc } from '../parse/feishu'
 import {
   getDocument,
   getManifest,
+  getStructured,
   listSpecs,
   resolveAssetPath,
 } from '../spec-store'
+import { structureSpec } from '../structure/structure'
 
 function loadDotEnv(): void {
   try {
@@ -95,6 +97,21 @@ app.get('/api/specs/:id/document', async (c) => {
   const doc = await getDocument(c.req.param('id'))
   if (doc === null) return c.json({ error: 'not found' }, 404)
   return c.text(doc)
+})
+
+// —— 需求结构化 ——
+app.get('/api/specs/:id/structured', async (c) => {
+  const data = await getStructured(c.req.param('id'))
+  return data ? c.json(data) : c.json({ error: 'not structured yet' }, 404)
+})
+
+app.post('/api/specs/:id/structure', async (c) => {
+  try {
+    const { summary } = await structureSpec(c.req.param('id'))
+    return c.json(summary)
+  } catch (e) {
+    return c.json({ error: errMessage(e) }, 400)
+  }
 })
 
 app.get('/api/specs/:id/assets/:file', async (c) => {

@@ -7,6 +7,7 @@
  * 后续阶段(server / 结构化 / 织造)再扩子命令。
  */
 import { parseFeishuDoc } from './parse/feishu'
+import { structureSpec } from './structure/structure'
 
 /** 尽力加载 .env(凭据兜底);没有也不报错,真正缺凭据时由 config 层提示 */
 function loadDotEnv(): void {
@@ -23,10 +24,12 @@ function usage(): void {
       'vega — 夜空织码,黎明交付',
       '',
       '用法:',
-      '  vega parse <飞书文档链接>   解析飞书需求文档(含图片)并落盘到 .vega/specs/<id>/',
+      '  vega parse <飞书文档链接>     解析飞书需求文档(含图片)并落盘到 .vega/specs/<id>/',
+      '  vega structure <documentId>  对已落盘需求做结构化(多模态)→ structured.json',
       '',
       '示例:',
       '  vega parse https://your.feishu.cn/wiki/xxxxxxxx',
+      '  vega structure RQ7kdpoFnoHlHwxrJ4JcvuO6nxb',
     ].join('\n'),
   )
 }
@@ -49,6 +52,25 @@ async function cmdParse(url: string | undefined): Promise<void> {
   console.log(`  落盘 → ${specDir}`)
 }
 
+async function cmdStructure(documentId: string | undefined): Promise<void> {
+  if (!documentId) {
+    console.error('缺少 documentId。用法:vega structure <documentId>')
+    process.exitCode = 1
+    return
+  }
+  const { specDir, summary } = await structureSpec(documentId, (msg) =>
+    console.log(`  · ${msg}`),
+  )
+  const c = summary.counts
+  console.log('')
+  console.log('✦ 结构化完成')
+  console.log(
+    `  准则 ${c.criteria}(确定 ${c.confirmed} / 假设 ${c.assumed}) · ` +
+      `待澄清 ${c.clarifications} · 覆盖账[未覆盖 ${c.uncovered} / 出范围 ${c.outOfScope} / 孤图 ${c.unlinkedImages}]`,
+  )
+  console.log(`  落盘 → ${specDir}/structured.json`)
+}
+
 async function main(): Promise<void> {
   loadDotEnv()
   const [cmd, arg] = process.argv.slice(2)
@@ -56,6 +78,9 @@ async function main(): Promise<void> {
   switch (cmd) {
     case 'parse':
       await cmdParse(arg)
+      break
+    case 'structure':
+      await cmdStructure(arg)
       break
     case undefined:
     case '-h':

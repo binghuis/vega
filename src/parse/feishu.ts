@@ -54,8 +54,8 @@ export interface SpecManifest {
   blocks: string
   assets: SpecAsset[]
   counts: { blocks: number; images: number; bytes: number }
-  /** 给下一步「需求结构化」预留,本阶段恒为 null */
-  structured: null
+  /** 需求结构化摘要;解析阶段为 null,结构化阶段回填 */
+  structured: import('../structure/structure').StructuredSummary | null
 }
 
 export interface ParseResult {

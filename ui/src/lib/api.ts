@@ -35,6 +35,71 @@ export interface FeishuConfigPatch {
   baseUrl?: string
 }
 
+// —— 结构化数据 ——
+export interface CriterionSource {
+  docLines: number[]
+  image: string | null
+}
+
+export interface StructuredCriterion {
+  id: string
+  view: string
+  status: 'confirmed' | 'assumed'
+  verify: 'behavioral' | 'visual' | 'data'
+  statement: string
+  given: string | null
+  when: string | null
+  then: string | null
+  assumption: string | null
+  source: CriterionSource
+}
+
+export interface StructuredClarification {
+  id: string
+  question: string
+  impact: string
+  candidates: string[]
+  blocks: string[]
+  docLines: number[]
+}
+
+export interface StructuredLedger {
+  uncovered_source: Array<{
+    line: number
+    text: string
+    why: string
+    action: string
+  }>
+  out_of_scope: Array<{
+    docLines: number[]
+    text: string
+    class: string
+    note: string
+  }>
+  unlinked_images: Array<{ image: string; why: string; action: string }>
+  unsourced_criteria: string[]
+}
+
+export interface StructuredCounts {
+  criteria: number
+  confirmed: number
+  assumed: number
+  clarifications: number
+  uncovered: number
+  outOfScope: number
+  unlinkedImages: number
+}
+
+export interface StructuredData {
+  source: { documentId: string; title: string }
+  generatedAt: string
+  counts: StructuredCounts
+  views: Array<{ id: string; name: string }>
+  criteria: StructuredCriterion[]
+  clarifications: StructuredClarification[]
+  ledger: StructuredLedger
+}
+
 async function unwrap<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const detail = (await res.json().catch(() => null)) as { error?: string } | null
@@ -70,6 +135,16 @@ export const api = {
       if (!r.ok) throw new Error(`正文加载失败(HTTP ${r.status})`)
       return r.text()
     }),
+
+  getStructured: (id: string): Promise<StructuredData | null> =>
+    fetch(`/api/specs/${id}/structured`).then((r) =>
+      r.status === 404 ? null : unwrap<StructuredData>(r),
+    ),
+
+  runStructure: (id: string) =>
+    postJson(`/api/specs/${id}/structure`, {}).then(
+      unwrap<{ generatedAt: string; counts: StructuredCounts }>,
+    ),
 
   /** 素材直链(endpoint 只认文件名,去掉 assets/ 前缀) */
   assetUrl: (id: string, file: string) =>

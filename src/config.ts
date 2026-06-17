@@ -19,9 +19,27 @@ export interface FeishuCredentials {
   baseUrl: string
 }
 
+/** 结构化模型 provider 配置(可替换:Claude 或任意 OpenAI 兼容服务) */
+export interface StructureConfig {
+  /** anthropic = Claude;openai = OpenAI 兼容(智谱 GLM-4V / 通义 Qwen-VL / Gemini / Ollama) */
+  provider: 'anthropic' | 'openai'
+  /** OpenAI 兼容服务的 base url(provider=openai 时用) */
+  baseUrl: string
+  model: string
+  apiKey: string
+  /** 输出上限(不同模型差异大,如智谱 glm-4v-flash 仅 1024) */
+  maxTokens: number
+  /** 启用深度思考(部分模型,如智谱 GLM-4.5+/5 系);OpenAI 兼容路径透传 thinking */
+  thinking: boolean
+}
+
 export interface VegaConfig {
   feishu?: Partial<FeishuCredentials>
+  structure?: Partial<StructureConfig>
 }
+
+/** OpenAI 兼容默认指向智谱(国内·免费档·视觉) */
+const DEFAULT_OPENAI_BASE = 'https://open.bigmodel.cn/api/paas/v4'
 
 const DEFAULT_BASE_URL = 'https://open.feishu.cn'
 
@@ -90,4 +108,41 @@ export async function saveFeishuCredentials(
   }
   await fs.mkdir(VEGA_DIR, { recursive: true })
   await fs.writeFile(CONFIG_PATH, JSON.stringify(next, null, 2), 'utf8')
+}
+
+/**
+ * 解析结构化模型配置。优先级:.vega/config.json.structure → 环境变量 → 默认。
+ * provider=anthropic 用 ANTHROPIC_API_KEY;provider=openai 用 STRUCTURE_API_KEY。
+ */
+export async function loadStructureConfig(): Promise<StructureConfig> {
+  const fileCfg = (await readConfigFile()).structure ?? {}
+  const provider = (fileCfg.provider ??
+    process.env.STRUCTURE_PROVIDER ??
+    'anthropic') as 'anthropic' | 'openai'
+
+  const defaultModel = provider === 'anthropic' ? 'claude-opus-4-8' : 'glm-4v-flash'
+  const baseUrl = fileCfg.baseUrl ?? process.env.STRUCTURE_BASE_URL ?? DEFAULT_OPENAI_BASE
+  const model = fileCfg.model ?? process.env.STRUCTURE_MODEL ?? defaultModel
+  const maxTokens = Number(
+    fileCfg.maxTokens ??
+      process.env.STRUCTURE_MAX_TOKENS ??
+      (provider === 'anthropic' ? 16000 : 4096),
+  )
+  const thinking =
+    fileCfg.thinking ??
+    ['enabled', 'true', '1'].includes(process.env.STRUCTURE_THINKING ?? '')
+  const apiKey =
+    fileCfg.apiKey ??
+    process.env.STRUCTURE_API_KEY ??
+    (provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY : undefined) ??
+    ''
+
+  if (!apiKey) {
+    throw new Error(
+      provider === 'anthropic'
+        ? '缺少 ANTHROPIC_API_KEY(或 STRUCTURE_API_KEY)'
+        : '缺少结构化模型 key:填 STRUCTURE_API_KEY(智谱在 open.bigmodel.cn 拿),或写入 .vega/config.json 的 structure.apiKey',
+    )
+  }
+  return { provider, baseUrl, model, apiKey, maxTokens, thinking }
 }
