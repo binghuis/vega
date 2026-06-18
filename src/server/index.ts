@@ -17,11 +17,12 @@ import { cors } from 'hono/cors'
 import { readFeishuConfigState, saveFeishuCredentials } from '../config'
 import { parseFeishuDoc } from '../parse/feishu'
 import {
-  getDocument,
+  getDocumentMarkdown,
   getManifest,
   getStructured,
   listSpecs,
   resolveAssetPath,
+  setClarificationAnswer,
 } from '../spec-store'
 import { structureSpec } from '../structure/structure'
 
@@ -93,10 +94,11 @@ app.get('/api/specs/:id', async (c) => {
   return m ? c.json(m) : c.json({ error: 'not found' }, 404)
 })
 
-app.get('/api/specs/:id/document', async (c) => {
-  const doc = await getDocument(c.req.param('id'))
-  if (doc === null) return c.json({ error: 'not found' }, 404)
-  return c.text(doc)
+// 正文(blocks 还原格式后的 Markdown,供网页带格式渲染)
+app.get('/api/specs/:id/markdown', async (c) => {
+  const md = await getDocumentMarkdown(c.req.param('id'))
+  if (md === null) return c.json({ error: 'not found' }, 404)
+  return c.text(md)
 })
 
 // —— 需求结构化 ——
@@ -112,6 +114,18 @@ app.post('/api/specs/:id/structure', async (c) => {
   } catch (e) {
     return c.json({ error: errMessage(e) }, 400)
   }
+})
+
+// 记录某条待澄清的答案(A/B 或「其他」自定义文本;null=清除)
+app.post('/api/specs/:id/clarifications/:cid/answer', async (c) => {
+  const body = await c.req.json<{ answer?: string | null }>()
+  const answer = typeof body.answer === 'string' ? body.answer : null
+  const updated = await setClarificationAnswer(
+    c.req.param('id'),
+    c.req.param('cid'),
+    answer,
+  )
+  return updated ? c.json(updated) : c.json({ error: 'not found' }, 404)
 })
 
 app.get('/api/specs/:id/assets/:file', async (c) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { CheckCircle2, ChevronDown, KeyRound, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -16,9 +16,9 @@ interface Props {
 }
 
 export function FeishuConfig({ config, onSaved }: Props) {
-  const [appId, setAppId] = useState('')
+  const [appId, setAppId] = useState(config?.appId ?? '')
   const [appSecret, setAppSecret] = useState('')
-  const [baseUrl, setBaseUrl] = useState('https://open.feishu.cn')
+  const [baseUrl, setBaseUrl] = useState(config?.baseUrl ?? 'https://open.feishu.cn')
   const [saving, setSaving] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -26,12 +26,14 @@ export function FeishuConfig({ config, onSaved }: Props) {
   // 低频配置:就绪后默认折叠为一行;未配置时强制展开引导填写
   const expanded = open || !ready
 
-  // 配置回显:app_id / 域名回填,secret 永不回显(后端也不返回)
-  useEffect(() => {
-    if (!config) return
-    setAppId(config.appId)
-    setBaseUrl(config.baseUrl)
-  }, [config])
+  // 配置回显:config 异步到达或保存后变化时,渲染期回填 app_id / 域名
+  // (secret 永不回显,后端也不返回);用渲染期同步替代 effect 内 setState,避免级联渲染
+  const [prevConfig, setPrevConfig] = useState(config)
+  if (config !== prevConfig) {
+    setPrevConfig(config)
+    setAppId(config?.appId ?? '')
+    setBaseUrl(config?.baseUrl ?? 'https://open.feishu.cn')
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -66,7 +68,7 @@ export function FeishuConfig({ config, onSaved }: Props) {
         飞书配置
         {ready ? (
           <Badge variant="secondary" className="gap-1">
-            <CheckCircle2 className="size-3 text-emerald-600" />
+            <CheckCircle2 className="text-success size-3" />
             就绪
           </Badge>
         ) : (

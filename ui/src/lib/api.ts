@@ -61,6 +61,8 @@ export interface StructuredClarification {
   candidates: string[]
   blocks: string[]
   docLines: number[]
+  /** PM 选定的答案:某个候选文本 / 「其他」自定义文本;未答为 null/缺省 */
+  answer?: string | null
 }
 
 export interface StructuredLedger {
@@ -130,8 +132,9 @@ export const api = {
 
   listSpecs: () => fetch('/api/specs').then(unwrap<SpecManifest[]>),
 
-  getDocument: (id: string) =>
-    fetch(`/api/specs/${id}/document`).then((r) => {
+  /** 正文 Markdown(由 blocks 还原格式,带标题/列表/表格/图片) */
+  getMarkdown: (id: string) =>
+    fetch(`/api/specs/${id}/markdown`).then((r) => {
       if (!r.ok) throw new Error(`正文加载失败(HTTP ${r.status})`)
       return r.text()
     }),
@@ -145,6 +148,12 @@ export const api = {
     postJson(`/api/specs/${id}/structure`, {}).then(
       unwrap<{ generatedAt: string; counts: StructuredCounts }>,
     ),
+
+  /** 记录待澄清答案(answer=null 清除) */
+  answerClarification: (specId: string, clarificationId: string, answer: string | null) =>
+    postJson(`/api/specs/${specId}/clarifications/${clarificationId}/answer`, {
+      answer,
+    }).then(unwrap<StructuredClarification>),
 
   /** 素材直链(endpoint 只认文件名,去掉 assets/ 前缀) */
   assetUrl: (id: string, file: string) =>

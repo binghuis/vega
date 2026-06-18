@@ -1,36 +1,39 @@
 import { useEffect, useState } from 'react'
-import {
-  ExternalLink,
-  FileText,
-  ImageIcon,
-  ListChecks,
-  Loader2,
-} from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
+import { SpecMarkdown } from '@/components/SpecMarkdown'
+import { StateNotice } from '@/components/StateNotice'
 import { StructuredView } from '@/components/StructuredView'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Thumbnail } from '@/components/Thumbnail'
+import { cn } from '@/lib/utils'
 import { api, type SpecManifest } from '@/lib/api'
 
 interface Props {
   spec: SpecManifest
+  /** 点准则溯源 → 通知外壳展开第三栏(传 docLines);null 收起 */
+  onPeek: (lines: number[] | null) => void
 }
+
+type Tab = 'text' | 'images' | 'structured'
 
 type DocState =
   | { status: 'loading' }
   | { status: 'loaded'; text: string }
   | { status: 'error'; message: string }
 
-export function SpecView({ spec }: Props) {
+export function SpecView({ spec, onPeek }: Props) {
   const id = spec.source.documentId
+  const [tab, setTab] = useState<Tab>('text')
   const [doc, setDoc] = useState<DocState>({ status: 'loading' })
+
+  // 切换需求(id 变化)时渲染期重置:回到正文、收起溯源、正文回到加载态
+  const [prevId, setPrevId] = useState(id)
+  if (id !== prevId) {
+    setPrevId(id)
+    setTab('text')
+    setDoc({ status: 'loading' })
+    onPeek(null)
+  }
 
   // 图片 token → 直链(供结构化视图显示缩略图)
   const assetByToken = new Map(spec.assets.map((a) => [a.fileToken, a.file]))
@@ -41,9 +44,8 @@ export function SpecView({ spec }: Props) {
 
   useEffect(() => {
     let alive = true
-    setDoc({ status: 'loading' })
     api
-      .getDocument(id)
+      .getMarkdown(id)
       .then((text) => alive && setDoc({ status: 'loaded', text }))
       .catch(
         (e: unknown) =>
@@ -58,11 +60,27 @@ export function SpecView({ spec }: Props) {
     }
   }, [id])
 
+  function switchTab(next: Tab) {
+    setTab(next)
+    onPeek(null) // 切视图收起溯源
+  }
+
+  const pills = [
+    spec.source.kind,
+    `${spec.counts.blocks} blocks`,
+    `${spec.counts.images} 图`,
+    `${(spec.counts.bytes / 1024).toFixed(0)} KB`,
+    new Date(spec.fetchedAt).toLocaleString(),
+  ]
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {spec.title}
+    <main className="flex min-h-0 min-w-0 flex-col">
+      {/* 文档头 */}
+      <div className="shrink-0 px-6 pt-[18px]">
+        <div className="flex items-center gap-2">
+          <h2 className="font-serif text-[18px] font-semibold tracking-tight">
+            {spec.title}
+          </h2>
           <a
             href={spec.source.url}
             target="_blank"
@@ -70,85 +88,109 @@ export function SpecView({ spec }: Props) {
             className="text-muted-foreground hover:text-foreground"
             title="在飞书打开"
           >
-            <ExternalLink className="size-4" />
+            <ExternalLink className="size-3.5" />
           </a>
-        </CardTitle>
-        <CardDescription className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{spec.source.kind}</Badge>
-          <Badge variant="secondary">{spec.counts.blocks} blocks</Badge>
-          <Badge variant="secondary">{spec.counts.images} 图</Badge>
-          <Badge variant="secondary">
-            {(spec.counts.bytes / 1024).toFixed(0)} KB
-          </Badge>
-          <span className="text-muted-foreground text-xs">
-            {new Date(spec.fetchedAt).toLocaleString()}
-          </span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="document">
-          <TabsList>
-            <TabsTrigger value="document">
-              <FileText className="size-4" />
-              正文
-            </TabsTrigger>
-            <TabsTrigger value="images">
-              <ImageIcon className="size-4" />
-              图片 {spec.counts.images}
-            </TabsTrigger>
-            <TabsTrigger value="structured">
-              <ListChecks className="size-4" />
-              结构化
-            </TabsTrigger>
-          </TabsList>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {pills.map((p) => (
+            <span
+              key={p}
+              className="text-muted-foreground bg-muted rounded-pill px-2 py-0.5 text-[11.5px] whitespace-nowrap"
+            >
+              {p}
+            </span>
+          ))}
+        </div>
+      </div>
 
-          <TabsContent value="document" className="mt-4">
+      {/* navrow:源 / 产物 */}
+      <div className="border-hairline mt-3.5 flex shrink-0 flex-wrap items-center gap-3 border-b px-6 pb-3.5">
+        <span className="text-muted-foreground text-[10px] font-semibold tracking-[0.1em] uppercase">
+          源
+        </span>
+        <div className="bg-muted inline-flex gap-0.5 rounded-[9px] p-[3px]">
+          <Seg active={tab === 'text'} onClick={() => switchTab('text')}>
+            正文
+          </Seg>
+          <Seg active={tab === 'images'} onClick={() => switchTab('images')}>
+            图片 <span className="text-[11px] opacity-70">{spec.counts.images}</span>
+          </Seg>
+        </div>
+        <span className="bg-border h-6 w-px" />
+        <span className="text-muted-foreground text-[10px] font-semibold tracking-[0.1em] uppercase">
+          产物
+        </span>
+        <div className="bg-muted inline-flex gap-0.5 rounded-[9px] p-[3px]">
+          <Seg
+            active={tab === 'structured'}
+            onClick={() => switchTab('structured')}
+          >
+            结构化
+          </Seg>
+        </div>
+      </div>
+
+      {/* 内容(独立滚动) */}
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
+        {tab === 'text' && (
+          <div className="max-w-[720px]">
             {doc.status === 'loading' && (
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <Loader2 className="size-4 animate-spin" />
-                加载正文…
-              </div>
+              <StateNotice tone="loading">加载正文…</StateNotice>
             )}
             {doc.status === 'error' && (
-              <p className="text-destructive text-sm">{doc.message}</p>
+              <StateNotice tone="error">{doc.message}</StateNotice>
             )}
             {doc.status === 'loaded' && (
-              <pre className="bg-muted/40 max-h-[60vh] overflow-auto rounded-md p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap">
-                {doc.text}
-              </pre>
+              <SpecMarkdown markdown={doc.text} resolveImage={imageUrl} />
             )}
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="images" className="mt-4">
-            {spec.assets.length === 0 ? (
-              <p className="text-muted-foreground text-sm">无图片</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {spec.assets.map((asset) => (
-                  <a
-                    key={asset.fileToken}
-                    href={api.assetUrl(id, asset.file)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:border-ring block overflow-hidden rounded-md border"
-                  >
-                    <img
-                      src={api.assetUrl(id, asset.file)}
-                      alt={asset.fileToken}
-                      loading="lazy"
-                      className="bg-muted/30 h-40 w-full object-contain"
-                    />
-                  </a>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+        {tab === 'images' &&
+          (spec.assets.length === 0 ? (
+            <StateNotice>无图片</StateNotice>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(158px,1fr))] gap-3">
+              {spec.assets.map((asset) => (
+                <Thumbnail
+                  key={asset.fileToken}
+                  src={api.assetUrl(id, asset.file)}
+                  alt={asset.fileToken}
+                  className="h-[104px]"
+                />
+              ))}
+            </div>
+          ))}
 
-          <TabsContent value="structured" className="mt-4">
-            <StructuredView specId={id} imageUrl={imageUrl} />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        {tab === 'structured' && (
+          <StructuredView specId={id} imageUrl={imageUrl} onPeek={onPeek} />
+        )}
+      </div>
+    </main>
+  )
+}
+
+function Seg({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'rounded-[7px] px-3 py-[5px] text-[12.5px] font-medium transition-colors',
+        active
+          ? 'bg-brand/[0.13] text-brand font-semibold'
+          : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {children}
+    </button>
   )
 }

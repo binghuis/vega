@@ -5,6 +5,7 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
+import { blocksToMarkdown, type DocxBlock } from './parse/blocks-to-markdown'
 import { VEGA_DIR } from './config'
 import type { SpecManifest } from './parse/feishu'
 
@@ -42,14 +43,19 @@ export function getManifest(id: string): Promise<SpecManifest | null> {
   return readManifest(id)
 }
 
-/** 正文 markdown 文本;不存在返回 null */
-export async function getDocument(id: string): Promise<string | null> {
+/**
+ * 正文(由 blocks.json 还原格式后的 Markdown);blocks.json 不存在返回 null。
+ * 保留标题 / 列表 / 表格 / 图片(对比 raw_content 接口只给纯文本、丢格式)。
+ */
+export async function getDocumentMarkdown(id: string): Promise<string | null> {
+  let raw: string
   try {
-    return await fs.readFile(path.join(SPECS_DIR, id, 'document.md'), 'utf8')
+    raw = await fs.readFile(path.join(SPECS_DIR, id, 'blocks.json'), 'utf8')
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null
     throw err
   }
+  return blocksToMarkdown(JSON.parse(raw) as DocxBlock[])
 }
 
 /** 结构化结果(structured.json);未结构化返回 null */
@@ -62,6 +68,37 @@ export async function getStructured(id: string): Promise<unknown | null> {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null
     throw err
   }
+}
+
+/** structured.json 里一条待澄清(只取本文件关心的字段) */
+interface StoredClarification {
+  id: string
+  answer?: string | null
+}
+
+/**
+ * 记录某条待澄清的答案(A/B 之一或「其他」自定义文本;null=清除),写回 structured.json。
+ * 返回更新后的该条;structured.json 不存在或找不到该 id 时返回 null。
+ */
+export async function setClarificationAnswer(
+  id: string,
+  clarificationId: string,
+  answer: string | null,
+): Promise<StoredClarification | null> {
+  const file = path.join(SPECS_DIR, id, 'structured.json')
+  let raw: string
+  try {
+    raw = await fs.readFile(file, 'utf8')
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null
+    throw err
+  }
+  const data = JSON.parse(raw) as { clarifications?: StoredClarification[] }
+  const target = data.clarifications?.find((q) => q.id === clarificationId)
+  if (!target) return null
+  target.answer = answer
+  await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8')
+  return target
 }
 
 /**

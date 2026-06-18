@@ -3,169 +3,171 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/dm-sans";
 @import "@fontsource-variable/fraunces/full.css";
+@import "@fontsource/noto-serif-sc/500.css";
+@import "@fontsource/noto-serif-sc/600.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+   织女 Vega — 主题系统(对齐 Claude Design styles.css)
+   扁平、靠明度差分层(无投影);语义色低彩度克制;分级圆角。
+   ============================================================ */
 :root {
-  --radius:
-    0.45rem;
-  /* 中性灰底,卡片纯白靠投影浮起(无描边);织女靛蓝仅作反差点缀(星标/选中) */
-  --background:
-    oklch(0.97 0 0);
-  /* 织女品牌色(反差强调):星标、选中态 */
-  --brand:
-    oklch(0.52 0.21 277);
-  --brand-foreground:
-    oklch(0.985 0 0);
-  --foreground:
-    oklch(0.145 0 0);
-  --card:
-    oklch(1 0 0);
-  --card-foreground:
-    oklch(0.145 0 0);
-  --popover:
-    oklch(1 0 0);
-  --popover-foreground:
-    oklch(0.145 0 0);
-  --primary:
-    oklch(0.205 0 0);
-  --primary-foreground:
-    oklch(0.985 0 0);
-  --secondary:
-    oklch(0.97 0 0);
-  --secondary-foreground:
-    oklch(0.205 0 0);
-  --muted:
-    oklch(0.97 0 0);
-  --muted-foreground:
-    oklch(0.556 0 0);
-  --accent:
-    oklch(0.97 0 0);
-  --accent-foreground:
-    oklch(0.205 0 0);
-  --destructive:
-    oklch(0.577 0.245 27.325);
-  --border:
-    oklch(0.922 0 0);
-  --input:
-    oklch(0.922 0 0);
-  --ring:
-    oklch(0.708 0 0);
-  --sidebar:
-    oklch(0.985 0 0);
-  --sidebar-foreground:
-    oklch(0.145 0 0);
-  --sidebar-primary:
-    oklch(0.205 0 0);
-  --sidebar-primary-foreground:
-    oklch(0.985 0 0);
-  --sidebar-accent:
-    oklch(0.97 0 0);
-  --sidebar-accent-foreground:
-    oklch(0.205 0 0);
-  --sidebar-border:
-    oklch(0.922 0 0);
-  --sidebar-ring:
-    oklch(0.708 0 0);
-  --chart-1:
-    oklch(0.87 0 0);
-  --chart-2:
-    oklch(0.556 0 0);
-  --chart-3:
-    oklch(0.439 0 0);
-  --chart-4:
-    oklch(0.371 0 0);
-  --chart-5:
-    oklch(0.269 0 0);
+  /* shadcn 的 --radius 对齐到内容卡 12px(供 rounded-lg/md/sm) */
+  --radius: 0.75rem;
+
+  /* —— 表面色阶 —— */
+  --background: oklch(0.995 0 0); /* app 画布 */
+  --foreground: oklch(0.205 0 0);
+  --card: oklch(1 0 0); /* 抬升 / 输入面 */
+  --card-foreground: oklch(0.205 0 0);
+  --soft: oklch(0.965 0 0); /* 内容卡原语:平铺软填充 */
+  --soft-alert: oklch(0.965 0.012 28); /* 软填充 + 暖调(待澄清) */
+  --faint: oklch(0.985 0 0); /* chrome 带(顶栏 / peek) */
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+
+  /* —— 线 —— */
+  --border: oklch(0.915 0 0); /* 结构边、输入、外框 */
+  --hairline: oklch(0.925 0 0); /* 卡内细分隔 */
+  --input: oklch(0.915 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /* —— 品牌 + 语义(低彩度克制) —— */
+  --brand: oklch(0.54 0.21 277); /* 织女靛蓝 */
+  --brand-foreground: oklch(0.985 0 0);
+  --success: oklch(0.52 0.055 155); /* 确定 */
+  --warning: oklch(0.55 0.06 72); /* 默认 / 待复核 */
+  --destructive: oklch(0.55 0.1 25); /* 待澄清 / 错误 */
+
+  /* —— app 外壳之外的页面底色 —— */
+  --backdrop: #dededf;
+
+  /* —— 分级圆角(像素) —— */
+  --radius-app: 18px;
+  --radius-panel: 14px;
+  --radius-card: 12px;
+  --radius-control: 9px;
+  --radius-chip: 7px;
+  --radius-pill: 6px;
+
+  /* sidebar / chart(沿用,未改用途) */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.915 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
 }
 
 .dark {
-  --background:
-    oklch(0.145 0 0);
-  --foreground:
-    oklch(0.985 0 0);
-  --card:
-    oklch(0.205 0 0);
-  --card-foreground:
-    oklch(0.985 0 0);
-  --popover:
-    oklch(0.205 0 0);
-  --popover-foreground:
-    oklch(0.985 0 0);
-  --primary:
-    oklch(0.922 0 0);
-  --primary-foreground:
-    oklch(0.205 0 0);
-  --secondary:
-    oklch(0.269 0 0);
-  --secondary-foreground:
-    oklch(0.985 0 0);
-  --muted:
-    oklch(0.269 0 0);
-  --muted-foreground:
-    oklch(0.708 0 0);
-  --accent:
-    oklch(0.269 0 0);
-  --accent-foreground:
-    oklch(0.985 0 0);
-  --destructive:
-    oklch(0.704 0.191 22.216);
-  --border:
-    oklch(1 0 0 / 10%);
-  --input:
-    oklch(1 0 0 / 15%);
-  --ring:
-    oklch(0.556 0 0);
-  --sidebar:
-    oklch(0.205 0 0);
-  --sidebar-foreground:
-    oklch(0.985 0 0);
-  --sidebar-primary:
-    oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground:
-    oklch(0.985 0 0);
-  --sidebar-accent:
-    oklch(0.269 0 0);
-  --sidebar-accent-foreground:
-    oklch(0.985 0 0);
-  --sidebar-border:
-    oklch(1 0 0 / 10%);
-  --sidebar-ring:
-    oklch(0.556 0 0);
-  --chart-1:
-    oklch(0.87 0 0);
-  --chart-2:
-    oklch(0.556 0 0);
-  --chart-3:
-    oklch(0.439 0 0);
-  --chart-4:
-    oklch(0.371 0 0);
-  --chart-5:
-    oklch(0.269 0 0);
+  --background: oklch(0.165 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --soft: oklch(0.225 0 0);
+  --soft-alert: oklch(0.225 0.012 28);
+  --faint: oklch(0.19 0 0);
+  --muted: oklch(0.255 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.255 0 0);
+  --secondary-foreground: oklch(0.97 0 0);
+  --accent: oklch(0.255 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+
+  --border: oklch(1 0 0 / 12%);
+  --hairline: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
+  --brand: oklch(0.7 0.17 277);
+  --brand-foreground: oklch(0.205 0 0);
+  --success: oklch(0.74 0.055 155);
+  --warning: oklch(0.78 0.06 72);
+  --destructive: oklch(0.72 0.1 25);
+
+  --backdrop: #0e0e0f;
+
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.255 0 0);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
 }
 
 @theme inline {
-  /* 品牌 wordmark:Fraunces(直立,靠 SOFT/WONK 轴增神采)只用于 Vega;织女回落 CJK */
+  /* 品牌 wordmark:Fraunces(直立)只用于 Vega;织女回落 CJK 衬线 */
   --font-brand:
-    'Fraunces Variable', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-    serif;
-  /* logo「织女」中文衬线(思源宋),离线回落系统宋体 */
+    'Fraunces Variable', 'Noto Serif SC', 'Songti SC', serif;
+  /* logo「织女」+ CJK 衬线强调:思源宋(已打包),回落系统宋体 */
   --font-cjk:
     'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  /* 区块标题用衬线(= 品牌字) */
+  --font-serif: var(--font-brand);
+  /* UI:拉丁 DM Sans + 中文系统圆体 */
+  --font-sans:
+    'DM Sans Variable', 'Yuanti SC', 'PingFang SC', sans-serif;
+  --font-heading: var(--font-serif);
+  --font-mono:
+    ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Yuanti SC', 'PingFang SC',
+    monospace;
+
+  /* 圆角:shadcn 基础刻度 + 设计稿分级命名 */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-app: 18px;
+  --radius-panel: 14px;
+  --radius-card: 12px;
+  --radius-control: 9px;
+  --radius-chip: 7px;
+  --radius-pill: 6px;
+
+  /* 颜色映射 */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-soft: var(--soft);
+  --color-soft-alert: var(--soft-alert);
+  --color-faint: var(--faint);
+  --color-backdrop: var(--backdrop);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -174,6 +176,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-hairline: var(--hairline);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-sidebar: var(--sidebar);
@@ -184,26 +187,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans:
-    'DM Sans Variable', sans-serif;
-  --font-heading:
-    var(--font-sans);
-  --color-chart-5:
-    var(--chart-5);
-  --color-chart-4:
-    var(--chart-4);
-  --color-chart-3:
-    var(--chart-3);
-  --color-chart-2:
-    var(--chart-2);
-  --color-chart-1:
-    var(--chart-1);
-  --radius-2xl:
-    calc(var(--radius) * 1.8);
-  --radius-3xl:
-    calc(var(--radius) * 2.2);
-  --radius-4xl:
-    calc(var(--radius) * 2.6);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 }
 
 @layer base {
@@ -216,4 +204,335 @@
   html {
     @apply font-sans;
   }
+}
+
+/* 字体助手(组件里直接用) */
+.serif {
+  font-family: var(--font-serif);
+}
+.cjk {
+  font-family: var(--font-cjk);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ============================================================
+   Markdown 排版作用域 `.md`(移植自设计稿 styles.css)
+   套在任何渲染 Markdown 的容器上(解析正文、准则说明…)。
+   ============================================================ */
+.md {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--foreground);
+  --md-flow: 18px; /* 块间默认垂直节奏 */
+}
+.md > * {
+  margin: 0;
+}
+.md > * + * {
+  margin-top: var(--md-flow);
+}
+
+/* 标题 — 衬线,越大越收紧 */
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+.md h1 {
+  font-size: 28px;
+  letter-spacing: -0.016em;
+}
+.md h2 {
+  font-size: 21px;
+  letter-spacing: -0.011em;
+}
+.md h3 {
+  font-size: 17px;
+  letter-spacing: -0.008em;
+}
+.md h4 {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.md h5 {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.md h6 {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  margin-top: 30px;
+}
+.md > h1 + *,
+.md > h2 + *,
+.md > h3 + * {
+  margin-top: 8px;
+}
+.md h2 {
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+}
+.md > h1:first-child,
+.md > h2:first-child,
+.md > h3:first-child,
+.md > h4:first-child,
+.md > h5:first-child,
+.md > h6:first-child {
+  margin-top: 0;
+}
+.md > h2:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* 段落 + 行内 */
+.md p {
+  font-size: 14px;
+  line-height: 1.75;
+}
+.md strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.md em {
+  font-style: italic;
+}
+.md del {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+.md a {
+  color: var(--brand);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in oklch, var(--brand) 35%, transparent);
+  padding-bottom: 0.5px;
+  transition: border-color 0.12s;
+}
+.md a:hover {
+  border-bottom-color: var(--brand);
+}
+.md mark {
+  background: color-mix(in oklch, var(--warning) 26%, transparent);
+  color: var(--foreground);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+/* 行内代码 + 键位 */
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--muted);
+  border-radius: 5px;
+  padding: 0.1em 0.4em;
+}
+.md kbd {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  line-height: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 2px 6px;
+  color: var(--foreground);
+}
+
+/* 代码块 */
+.md pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  background: var(--faint);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  overflow: auto;
+}
+.md pre code {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* 引用 */
+.md blockquote {
+  border-left: 2px solid color-mix(in oklch, var(--brand) 50%, var(--border));
+  padding: 2px 0 2px 16px;
+  color: var(--muted-foreground);
+  font-size: 13.5px;
+}
+.md blockquote > * + * {
+  margin-top: 8px;
+}
+
+/* 列表 — 品牌色自定义标记 */
+.md ul,
+.md ol {
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.md li {
+  font-size: 14px;
+  line-height: 1.7;
+  padding-left: 26px;
+  position: relative;
+}
+.md ul > li::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0.66em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--brand) 75%, transparent);
+}
+.md ol {
+  counter-reset: ol;
+}
+.md ol > li {
+  counter-increment: ol;
+}
+.md ol > li::before {
+  content: counter(ol) '.';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  text-align: right;
+  color: var(--brand);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.md li > ul,
+.md li > ol {
+  margin-top: 7px;
+}
+.md ul ul > li::before {
+  background: none;
+  width: 6px;
+  height: 0;
+  border-top: 1.5px solid var(--muted-foreground);
+  top: 0.85em;
+}
+/* 任务清单 */
+.md li.task {
+  padding-left: 28px;
+  list-style: none;
+}
+.md li.task::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.32em;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--card);
+}
+.md li.task.done::before {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.md li.task.done::after {
+  content: '';
+  position: absolute;
+  left: 6.7px;
+  top: 0.5em;
+  width: 3.5px;
+  height: 7px;
+  border: solid var(--background);
+  border-width: 0 2px 2px 0;
+  transform: rotate(42deg);
+}
+.md li.task.done {
+  color: var(--muted-foreground);
+}
+
+/* 分隔线 */
+.md hr {
+  border: 0;
+  height: 1px;
+  background: var(--hairline);
+  margin: 24px 0;
+}
+
+/* 表格 */
+.md table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.md thead th {
+  background: var(--soft);
+  font-weight: 600;
+  text-align: left;
+}
+.md th,
+.md td {
+  padding: 9px 13px;
+  border-top: 1px solid var(--hairline);
+  border-left: 1px solid var(--hairline);
+}
+.md thead th {
+  border-top: 0;
+}
+.md th:first-child,
+.md td:first-child {
+  border-left: 0;
+}
+.md tbody tr:hover {
+  background: color-mix(in oklch, var(--foreground) 2.5%, transparent);
+}
+
+/* 图片 + 图注 */
+.md img {
+  max-width: 100%;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  display: block;
+}
+.md figure {
+  margin: 0;
+}
+.md figcaption {
+  font-size: 11.5px;
+  color: var(--muted-foreground);
+  margin-top: 7px;
+  text-align: center;
 }
