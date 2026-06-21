@@ -51,6 +51,8 @@ export interface StructuredCriterion {
   when: string | null
   then: string | null
   assumption: string | null
+  /** 可建度缺口:空=可直接交给 AI 建,非空=待补(每条一句缺什么);旧产物可能缺此字段 */
+  gaps?: string[]
   source: CriterionSource
 }
 
@@ -84,6 +86,8 @@ export interface StructuredLedger {
 
 export interface StructuredCounts {
   criteria: number
+  buildable: number
+  needsInfo: number
   confirmed: number
   assumed: number
   clarifications: number

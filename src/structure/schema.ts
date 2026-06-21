@@ -2,7 +2,7 @@
  * 结构化两阶段 schema(回到 vega 公理:切成短的可独立验证单元)。
  *
  * 阶段A 提取(多模态,模型擅长):只抽准则 + 溯源(行号 + 图 token),不做判断。
- * 阶段B 评审(纯文本,隔离判断):三分 / 澄清 / 出范围 / 噪声行。
+ * 阶段B 评审(纯文本,隔离判断):三分 / 澄清 / 出范围 / 噪声行 / 可建度。
  * 覆盖账(未覆盖行 / 孤图)由代码从「引用」机器反推,不进 schema。
  *
  * 对弱模型的容错:逐字段 .catch(兜底),让「单条缺/错字段」不毁全批;
@@ -40,6 +40,12 @@ export const Judgment = z.object({
   assumption: z.string().nullable().catch(null),
 })
 
+// 可建度:逐条判这条准则能否直接交给 AI 实现;gaps 空=可建,非空=待补
+export const ReadinessJudgment = z.object({
+  index: z.number().catch(-1),
+  gaps: z.array(z.string()).catch([]),
+})
+
 export const ClarificationOut = z.object({
   question: z.string().catch(''),
   impact: z.string().catch(''),
@@ -57,6 +63,10 @@ export const OutOfScopeOut = z.object({
 // 阶段B 再拆成 3 个「只干一件事」的极简调用,每个一个输出
 export const StatusOutput = z.object({
   judgments: z.array(Judgment).catch([]),
+})
+
+export const ReadinessOutput = z.object({
+  judgments: z.array(ReadinessJudgment).catch([]),
 })
 
 export const ClarifyOutput = z.object({

@@ -2,7 +2,7 @@
  * 需求结构化(两阶段 + 机器算覆盖账 + 退化重试,回到 vega 公理)。
  *
  * 阶段A 提取(多模态):正文(按行编号)+ 图 → 准则 + 溯源(行号/图 token)。弱模型擅长,出 0 条则重试。
- * 阶段B 评审(纯文本,隔离判断):三分(confirmed/assumed)+ 澄清(扫待定)+ 出范围 + 噪声行。
+ * 阶段B 评审(纯文本,隔离判断):来源(confirmed/assumed)+ 澄清(扫待定)+ 出范围 + 噪声行 + 可建度(能否直接交给 AI 实现)。
  * 机器侧:从「引用」反推未覆盖行 / 孤图(不问模型);稳定 id;stats。
  *
  * 产物:.vega/specs/<documentId>/structured.json,并回填 manifest.structured 摘要。
@@ -17,6 +17,7 @@ import { callModel, type Part } from './providers'
 import {
   ClarifyOutput,
   ExtractOutput,
+  ReadinessOutput,
   ScopeOutput,
   StatusOutput,
 } from './schema'
@@ -49,6 +50,13 @@ const SYSTEM_SCOPE = `你是需求评审员。只做一件事:在正文(每行 L
 - outOfScope:算法/后端/模型类(如 识别说话人、台词拆分合并、换行问题、原文译文轴数对齐、算法效果优化)→ {docLines, class, note}
 - noiseLines:纯元信息行(标题、版本号/修订日期/修订说明/修订状态/修订人 这类表头与记录)的行号
 输出 {outOfScope:[...], noiseLines:[...]};没有就给空数组。全中文。`
+
+const SYSTEM_READINESS = `你是需求评审员。输入:正文(每行 L<编号>)+ 已提取准则清单(C<下标>)。只做一件事:逐条判这条准则【是否已经能直接交给 AI 实现】。
+判据(三条全过才算可建,gaps 给空数组):①产品描述清楚;②AI 实现核心逻辑不会有歧义;③没有特别重要的信息缺失。
+- 任一条不过:在 gaps 里逐条写「缺什么 / 哪里不清楚」,每条一句话,只点缺口、不要替它补答案(补默认值是另一步的事)。
+- 只收会让核心逻辑产生歧义、或特别重要的缺失;格式 / 文案 / 像素这类不影响核心逻辑能否跑通的细节不要列。
+- 能直接建的,gaps 给空数组。
+输出 {judgments:[{index, gaps}]},index 用 C 的下标。全中文。`
 
 // 示例实例(给弱模型仿写;结构需与 schema 一致)
 const EXAMPLE_EXTRACT = JSON.stringify({
@@ -89,6 +97,13 @@ const EXAMPLE_SCOPE = JSON.stringify({
   noiseLines: [1, 2, 3],
 })
 
+const EXAMPLE_READINESS = JSON.stringify({
+  judgments: [
+    { index: 0, gaps: ['多条视频时长如何聚合未定,影响列表展示核心逻辑'] },
+    { index: 1, gaps: [] },
+  ],
+})
+
 function shortHash(input: string): string {
   return crypto.createHash('sha256').update(input).digest('hex').slice(0, 8)
 }
@@ -99,8 +114,10 @@ export interface StructuredSummary {
   generatedAt: string
   counts: {
     criteria: number
-    confirmed: number
-    assumed: number
+    buildable: number // 可建:核心逻辑无歧义、无重要缺失
+    needsInfo: number // 待补:缺核心信息,补全才能建
+    confirmed: number // 来源:PM 文档明写
+    assumed: number // 来源:AI 补的默认值
     clarifications: number
     uncovered: number
     outOfScope: number
@@ -223,21 +240,31 @@ export async function structureSpec(
     cfg,
     EXAMPLE_SCOPE,
   )
+  onProgress('阶段B4 审可建度…')
+  const readiness = await callModel(
+    SYSTEM_READINESS,
+    statusParts,
+    ReadinessOutput,
+    cfg,
+    EXAMPLE_READINESS,
+  )
 
-  // —— 合并 status + 稳定 id ——
+  // —— 合并 来源(status)+ 可建度(gaps)+ 稳定 id ——
   const statusByIndex = new Map(status.judgments.map((j) => [j.index, j]))
+  const gapsByIndex = new Map(readiness.judgments.map((j) => [j.index, j.gaps]))
   const criteria = items.map((c, i) => {
     const j = statusByIndex.get(i)
     return {
       id: `C_${shortHash(c.statement + JSON.stringify(c.source))}`,
       view: c.view,
-      status: j?.status ?? 'confirmed', // 默认 confirmed(PM 明示居多)
+      status: j?.status ?? 'confirmed', // 来源(子标记):PM 明写 vs AI 补,不再当分组闸门
       verify: c.verify,
       statement: c.statement,
       given: c.given,
       when: c.when,
       then: c.then,
       assumption: j?.assumption ?? null,
+      gaps: gapsByIndex.get(i) ?? [], // 可建度闸门:空=可直接交给 AI 建
       source: c.source,
     }
   })
@@ -291,6 +318,8 @@ export async function structureSpec(
     generatedAt: new Date().toISOString(),
     counts: {
       criteria: criteria.length,
+      buildable: criteria.filter((c) => c.gaps.length === 0).length,
+      needsInfo: criteria.filter((c) => c.gaps.length > 0).length,
       confirmed: criteria.filter((c) => c.status === 'confirmed').length,
       assumed: criteria.filter((c) => c.status === 'assumed').length,
       clarifications: clarifications.length,

@@ -65,7 +65,7 @@ async function cmdStructure(documentId: string | undefined): Promise<void> {
   console.log('')
   console.log('✦ 结构化完成')
   console.log(
-    `  准则 ${c.criteria}(确定 ${c.confirmed} / 假设 ${c.assumed}) · ` +
+    `  准则 ${c.criteria}(可建 ${c.buildable} / 待补 ${c.needsInfo}) · ` +
       `待澄清 ${c.clarifications} · 覆盖账[未覆盖 ${c.uncovered} / 出范围 ${c.outOfScope} / 孤图 ${c.unlinkedImages}]`,
   )
   console.log(`  落盘 → ${specDir}/structured.json`)

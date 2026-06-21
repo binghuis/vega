@@ -41,11 +41,11 @@ const VERIFY_LABEL: Record<StructuredCriterion['verify'], string> = {
   data: '数据',
 }
 
-// 状态分组的色点(组头唯一出处,卡内不再重复状态徽章)
+// 组头色点 = 可建度分组的唯一出处;卡内 chip 是「来源」(另一根轴),不重复分组状态
 const DOT = {
   clarification: 'bg-destructive',
-  confirmed: 'bg-success',
-  assumed: 'bg-warning',
+  buildable: 'bg-success',
+  needsInfo: 'bg-warning',
 } as const
 
 export function StructuredView({ specId, imageUrl, onPeek }: Props) {
@@ -118,14 +118,14 @@ export function StructuredView({ specId, imageUrl, onPeek }: Props) {
     }
   }
 
-  const runButton = (
+  const runButton = (idleLabel: string) => (
     <Button onClick={handleRun} disabled={running} size="sm" variant="outline">
       {running ? (
         <Loader2 className="size-4 animate-spin" />
       ) : (
         <Sparkles className="size-4" />
       )}
-      {running ? '结构化中…' : '运行结构化'}
+      {running ? '结构化中…' : idleLabel}
     </Button>
   )
 
@@ -151,7 +151,7 @@ export function StructuredView({ specId, imageUrl, onPeek }: Props) {
         <p className="text-muted-foreground text-sm">
           还没有结构化结果。运行后产出「带来源的准则 + 待澄清 + 覆盖账」。
         </p>
-        {runButton}
+        {runButton('运行结构化')}
         <p className="text-muted-foreground text-xs">
           需配置结构化模型(.env 的 STRUCTURE_*),一次约几次模型调用。
         </p>
@@ -160,8 +160,9 @@ export function StructuredView({ specId, imageUrl, onPeek }: Props) {
   }
 
   const { data } = state
-  const confirmed = data.criteria.filter((c) => c.status === 'confirmed')
-  const assumed = data.criteria.filter((c) => c.status === 'assumed')
+  // 主轴:可建度(gaps 空=可直接交给 AI 建);来源(confirmed/assumed)退为卡内 chip
+  const buildable = data.criteria.filter((c) => (c.gaps?.length ?? 0) === 0)
+  const needsInfo = data.criteria.filter((c) => (c.gaps?.length ?? 0) > 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -171,9 +172,10 @@ export function StructuredView({ specId, imageUrl, onPeek }: Props) {
           结构化准则
         </h3>
         <span className="text-muted-foreground text-[12.5px]">
-          按状态分类 · {data.counts.criteria} 项
+          可建 {buildable.length} · 待补 {needsInfo.length} · 共{' '}
+          {data.counts.criteria} 项
         </span>
-        <div className="ml-auto self-center">{runButton}</div>
+        <div className="ml-auto self-center">{runButton('重新结构化')}</div>
       </div>
 
       {/* 待澄清(置顶) */}
@@ -195,14 +197,14 @@ export function StructuredView({ specId, imageUrl, onPeek }: Props) {
         </StatusGroup>
       )}
 
-      {confirmed.length > 0 && (
+      {needsInfo.length > 0 && (
         <StatusGroup
-          tone="confirmed"
-          title="确定"
-          hint="可直接执行"
-          count={confirmed.length}
+          tone="needsInfo"
+          title="待补"
+          hint="缺核心信息 · 补全才能建"
+          count={needsInfo.length}
         >
-          {confirmed.map((cr) => (
+          {needsInfo.map((cr) => (
             <CriterionCard
               key={cr.id}
               cr={cr}
@@ -213,14 +215,14 @@ export function StructuredView({ specId, imageUrl, onPeek }: Props) {
         </StatusGroup>
       )}
 
-      {assumed.length > 0 && (
+      {buildable.length > 0 && (
         <StatusGroup
-          tone="assumed"
-          title="默认"
-          hint="按默认假定 · 待复核"
-          count={assumed.length}
+          tone="buildable"
+          title="确定"
+          hint="可直接交给 AI 实现"
+          count={buildable.length}
         >
-          {assumed.map((cr) => (
+          {buildable.map((cr) => (
             <CriterionCard
               key={cr.id}
               cr={cr}
@@ -306,6 +308,11 @@ function CriterionCard({
           <span className="text-muted-foreground rounded-chip shrink-0 border px-1.5 text-[11px]">
             {VERIFY_LABEL[cr.verify]}
           </span>
+          {cr.status === 'assumed' && (
+            <span className="text-warning border-warning/40 rounded-chip shrink-0 border px-1.5 text-[11px]">
+              AI 补·待复核
+            </span>
+          )}
           <span className="text-[13.5px] leading-relaxed font-semibold">
             {cr.statement}
           </span>
@@ -317,6 +324,16 @@ function CriterionCard({
         )}
         {cr.status === 'assumed' && cr.assumption && (
           <div className="text-warning mt-1 text-xs">假设:{cr.assumption}</div>
+        )}
+        {cr.gaps && cr.gaps.length > 0 && (
+          <div className="text-warning mt-1.5 text-xs">
+            待补 {cr.gaps.length} 项才能建:
+            <ul className="mt-0.5 ml-3.5 list-disc space-y-0.5">
+              {cr.gaps.map((g, i) => (
+                <li key={i}>{g}</li>
+              ))}
+            </ul>
+          </div>
         )}
         <div className="mt-2">
           <SourceRef lines={cr.source.docLines} onPeek={onPeek} />
