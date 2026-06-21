@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CheckCircle2, ChevronDown, KeyRound, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -86,10 +86,6 @@ export function FeishuConfig({ config, onSaved }: Props) {
 
       {expanded && (
         <CardContent className="grid gap-4 px-6 pb-6">
-          <CardDescription>
-            自建应用的 app_id / app_secret(开放平台 → 凭证与基础信息)。保存在本地
-            .vega/config.json,不外传。
-          </CardDescription>
           <div className="grid gap-2">
             <Label htmlFor="appId">App ID</Label>
             <Input
